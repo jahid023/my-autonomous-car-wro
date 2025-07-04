@@ -1,0 +1,14 @@
+Our project includes several custom-designed 3D-printed parts to ensure a stable and functional structure for the autonomous vehicle. These parts were modeled using [mention software used, e.g., Fusion 360, TinkerCAD, or SolidWorks] and printed with PLA filament.
+
+🧩 3D-printed components:
+Camera holder – to securely position the Pi Camera at a fixed forward angle
+
+Ultrasonic sensor mounts – to accurately orient the sensors at the front, left, and right angles
+
+Battery holder – to keep the power supply stable during motion
+
+Electronics tray / Base plate adapter – for organizing components on the chassis
+
+All 3D models are included in the /models/ folder in .STL format, ready for printing.
+
+These custom parts improved the stability, cable management, and sensor accuracy, contributing to smoother obstacle detection and track following.
