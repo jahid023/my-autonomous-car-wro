@@ -1,0 +1,100 @@
+import RPi.GPIO as GPIO
+import time
+import pigpio
+
+# GPIO MODE
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+# Ultrasonic sensor pins
+TRIG_FRONT = 23
+ECHO_FRONT = 24
+
+TRIG_LEFT = 17
+ECHO_LEFT = 27
+
+TRIG_RIGHT = 5
+ECHO_RIGHT = 6
+
+# Motor driver pins
+IN1 = 22
+IN2 = 10
+
+# Servo
+SERVO_PIN = 18
+servo = pigpio.pi()
+servo.set_mode(SERVO_PIN, pigpio.OUTPUT)
+
+# Set pin directions
+ultrasonics = [(TRIG_FRONT, ECHO_FRONT), (TRIG_LEFT, ECHO_LEFT), (TRIG_RIGHT, ECHO_RIGHT)]
+for trig, echo in ultrasonics:
+    GPIO.setup(trig, GPIO.OUT)
+    GPIO.setup(echo, GPIO.IN)
+
+GPIO.setup(IN1, GPIO.OUT)
+GPIO.setup(IN2, GPIO.OUT)
+
+def distance(trig, echo):
+    GPIO.output(trig, True)
+    time.sleep(0.00001)
+    GPIO.output(trig, False)
+
+    start = time.time()
+    stop = time.time()
+
+    while GPIO.input(echo) == 0:
+        start = time.time()
+
+    while GPIO.input(echo) == 1:
+        stop = time.time()
+
+    elapsed = stop - start
+    dist = (elapsed * 34300) / 2
+    return dist
+
+def forward():
+    GPIO.output(IN1, GPIO.HIGH)
+    GPIO.output(IN2, GPIO.LOW)
+
+def backward():
+    GPIO.output(IN1, GPIO.LOW)
+    GPIO.output(IN2, GPIO.HIGH)
+
+def stop():
+    GPIO.output(IN1, GPIO.LOW)
+    GPIO.output(IN2, GPIO.LOW)
+
+def turn_servo(angle):
+    pulse_width = 500 + (angle / 180.0) * 2000
+    servo.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+
+try:
+    while True:
+        d_front = distance(TRIG_FRONT, ECHO_FRONT)
+        d_left = distance(TRIG_LEFT, ECHO_LEFT)
+        d_right = distance(TRIG_RIGHT, ECHO_RIGHT)
+
+        print(f"Front: {d_front:.1f} cm | Left: {d_left:.1f} cm | Right: {d_right:.1f} cm")
+
+        if d_front < 20:
+            stop()
+            time.sleep(0.5)
+            if d_left > d_right:
+                print("Turning Left")
+                backward()
+                time.sleep(0.3)
+            else:
+                print("Turning Right")
+                backward()
+                time.sleep(0.3)
+        else:
+            print("Moving Forward")
+            forward()
+
+        time.sleep(0.1)
+
+except KeyboardInterrupt:
+    print("Program stopped by user")
+    GPIO.cleanup()
+    servo.set_servo_pulsewidth(SERVO_PIN, 0)
+    servo.stop()
